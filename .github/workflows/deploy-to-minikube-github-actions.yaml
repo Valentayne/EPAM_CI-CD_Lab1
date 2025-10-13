@@ -20,7 +20,7 @@ jobs:
           export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
           docker build -t devopshint/node-app:latest .
-          echo "✅ Image built successfully"
+          echo "Image built successfully"
           docker images | grep node-app
 
       - name: Deploy to Minikube
@@ -28,13 +28,10 @@ jobs:
 
       - name: Wait for Deployment rollout
         run: |
-          echo "⏳ Waiting for pods to be ready..."
           kubectl rollout status deployment/nodejs-app --timeout=90s
           kubectl get pods -o wide
 
       - name: Test service URLs
         run: |
-          echo "Available services:"
           minikube service list
-          echo "NodeJS App URL:"
           minikube service nodejs-app --url
