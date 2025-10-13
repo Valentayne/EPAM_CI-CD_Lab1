@@ -1,10 +1,10 @@
-name: Special For Oleksandra
+name: Deploy to Minikube using GitHub Actions
 
 on: [push]
   
 jobs:
   job1:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     name: build Node.js Docker Image and deploy to minikube
     steps:
     - uses: actions/checkout@v2
