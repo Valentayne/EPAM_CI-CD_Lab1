@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Start Minikube
-        uses: medyagh/setup-minikube@v0.0.16
+        uses: medyagh/setup-minikube@latest
 
       - name: Verify cluster
         run: kubectl get nodes
@@ -20,7 +20,7 @@ jobs:
         run: |
           eval $(minikube -p minikube docker-env)
           docker build -t devopshint/node-app:14 .
-          echo "Image built successfully"
+          echo "✓ Image built successfully"
           docker images | grep node-app
 
       - name: Deploy to Minikube
@@ -31,27 +31,32 @@ jobs:
           kubectl rollout status deployment/nodejs-app --timeout=90s
           kubectl get pods -o wide
 
-      - name: Wait for deployment
-        run: |
-          kubectl wait --for=condition=available --timeout=60s deployment/nodejs-app
-
       - name: Test service with port-forward
         run: |
-          kubectl port-forward svc/nodejs-app 8080:3000 &
+          SERVICE_PORT=$(kubectl get svc nodejs-app -o jsonpath='{.spec.ports[0].port}')
+          echo "Service port: $SERVICE_PORT"
+          
+          kubectl port-forward svc/nodejs-app 8080:$SERVICE_PORT > /dev/null 2>&1 &
           PF_PID=$!
-          sleep 3
+          sleep 5
           
-          if curl -f -s http://localhost:8080; then
-            echo "✓ Service OK!"
-          else
-            echo "✗ Failed"
-            kill $PF_PID
-            exit 1
-          fi
+          echo "Testing service availability..."
+          for i in {1..10}; do
+            if curl -f -s http://localhost:8080 > /dev/null; then
+              echo "✓ Service is responding!"
+              echo "Response:"
+              curl -s http://localhost:8080
+              kill $PF_PID 2>/dev/null || true
+              exit 0
+            fi
+            echo "Attempt $i/10 failed, retrying..."
+            sleep 3
+          done
           
-          kill $PF_PID
-
-          
-
-    
-
+          echo "✗ Service failed to respond after 30 seconds"
+          echo "=== Diagnostics ==="
+          kubectl get pods -o wide
+          kubectl get svc nodejs-app
+          kubectl logs -l app=nodejs-app --tail=30
+          kill $PF_PID 2>/dev/null || true
+          exit 1
