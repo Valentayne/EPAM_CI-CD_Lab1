@@ -6,7 +6,6 @@ jobs:
   test_env:
     runs-on: ubuntu-22.04
     name: Build Node.js Docker Image and Deploy to Minikube
-
     steps:
       - name: Checkout repository
       - uses: actions/checkout@v2
