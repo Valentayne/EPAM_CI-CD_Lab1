@@ -1,16 +1,18 @@
-name: Deploy to Minikube using GitHub Actions
+name: Special for Oleksandra
 
 on: [push]
 
 jobs:
-  job1:
-    runs-on: ubuntu-latest
+  test_env:
+    runs-on: ubuntu-22.04
     name: Build Node.js Docker Image and Deploy to Minikube
+
     steps:
+      - name: Checkout repository
       - uses: actions/checkout@v2
 
       - name: Start Minikube
-        uses: medyagh/setup-minikube@master
+        uses: medyagh/setup-minikube@v1.23.0
 
       - name: Verify cluster
         run: kubectl get nodes
@@ -19,7 +21,7 @@ jobs:
         run: |
           export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
-          docker build -t devopshint/node-app:latest .
+          docker build -t devopshint/node-app:14 .
           echo "Image built successfully"
           docker images | grep node-app
 
