@@ -8,10 +8,10 @@ jobs:
     name: Build Node.js Docker Image and Deploy to Minikube
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Start Minikube
-        uses: medyagh/setup-minikube@v1.23.0
+        uses: medyagh/setup-minikube@1.24.0
 
       - name: Verify cluster
         run: kubectl get nodes
