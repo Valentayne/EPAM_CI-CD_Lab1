@@ -33,20 +33,29 @@ jobs:
 
       - name: Test service URLs
         run: |
-          URL=$(minikube service nodejs-app --url)
-                    
-          for i in {1..6}; do
-            if curl -f -s --max-time 5 "$URL" > /dev/null; then
+          echo "Available services:"
+          minikube service list
+          
+          kubectl port-forward service/nodejs-app 8080:3000 > /dev/null 2>&1 &
+          PID=$!
+          sleep 5
+          
+          for i in {1..10}; do
+            if curl -f -s http://localhost:8080 > /dev/null; then
               echo "✓ Service is responding!"
-              curl -s "$URL"
+              curl -s http://localhost:8080
+              kill $PID
               exit 0
             fi
-            echo "Attempt $i/6 failed, waiting..."
-            sleep 5
+            echo "Attempt $i/10 failed, waiting..."
+            sleep 3
           done
           
-          echo "✗ Service failed to respond after 30 seconds"
+          kill $PID
+          echo "✗ Service failed to respond"
           exit 1
+
+          
 
     
 
